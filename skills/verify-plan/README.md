@@ -43,6 +43,11 @@ ln -s "$(pwd)/uriel-lord-of-vows/skills/verify-plan" ~/.claude/skills/verify-pla
 cp -r uriel-lord-of-vows/skills/verify-plan ~/.claude/skills/verify-plan
 ```
 
+> **Note (Windows):** Creating symlinks on Windows requires **Administrator PowerShell** or **Developer Mode** enabled (Settings > For Developers). If neither is available, use the copy method above or create a junction instead:
+> ```cmd
+> cmd /c mklink /J "%USERPROFILE%\.claude\skills\verify-plan" "path\to\uriel-lord-of-vows\skills\verify-plan"
+> ```
+
 After installation, verify the skill is discoverable:
 
 ```bash
@@ -210,11 +215,11 @@ Each challenge raised by the Challenger moves through a lifecycle:
 
 | State | Meaning | Transition |
 |-------|---------|------------|
-| `OPEN` | Newly raised, not yet investigated | Researcher picks it up |
-| `RESEARCHED` | Evidence gathered, awaiting synthesis | Synthesizer evaluates |
-| `RESOLVED` | Addressed with sufficient evidence | Terminal — no further action |
-| `DEFERRED` | Not blocking, insufficient evidence to resolve now | Terminal — flagged in verdict |
-| `ESCALATED` | Severity increased based on research findings | Re-enters next iteration as high priority |
+| `OPEN` | Challenge is new, not yet evaluated by any agent | Picked up for evaluation in current iteration |
+| `RESOLVED` | Settled with a clear mitigation or confirmed not a real risk | Terminal — no further action |
+| `UNRESOLVED` | Confirmed real risk with no viable mitigation identified | Counts against convergence |
+| `DEFERRED` | MINOR severity only; not worth iterating on | Terminal — flagged in report, does not block convergence |
+| `WITHDRAWN` | Challenge shown to be invalid — incorrect assumption or already handled | Terminal — removed from consideration |
 
 A challenge can only be marked `RESOLVED` if the Synthesizer cites specific evidence from the Researcher. "Looks fine" is not a valid resolution. This evidence requirement is what gives the convergence loop its rigor.
 
@@ -245,6 +250,12 @@ Enable parallel execution by setting `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. W
 
 **Verdict seems overly cautious (too many RETHINK verdicts)**
 The skill is intentionally conservative — it is cheaper to over-flag than to miss a blocking issue. If you find the threshold too aggressive for your workflow, consider lowering the complexity threshold with `--threshold=5` to keep the team small, or review the scoring rubric in `scoring-rubric.md` to understand the calibration.
+
+**"A required privilege is not held by the client" on Windows**
+Windows symlinks require Administrator PowerShell or Developer Mode. Alternatives:
+- Use the copy install method instead of symlink
+- Create a junction: `cmd /c mklink /J "%USERPROFILE%\.claude\skills\verify-plan" "path\to\skills\verify-plan"`
+- Enable Developer Mode: Settings > For Developers > Developer Mode
 
 **Plan auto-discovery picks the wrong file**
 Auto-discovery selects the most recently modified `.md` file in `.claude/plans/`. If you have multiple plans, pass the explicit path: `/verify-plan .claude/plans/specific-plan.md`.

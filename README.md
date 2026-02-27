@@ -38,6 +38,11 @@ git clone https://github.com/contabilidad-source/uriel-lord-of-vows.git
 New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\verify-plan" -Target "$(Get-Location)\uriel-lord-of-vows\skills\verify-plan"
 ```
 
+> **Note:** Creating symlinks on Windows requires **Administrator PowerShell** or **Developer Mode** enabled (Settings > For Developers). If neither is available, use Option 2 (copy) or create a junction instead:
+> ```cmd
+> cmd /c mklink /J "%USERPROFILE%\.claude\skills\verify-plan" "uriel-lord-of-vows\skills\verify-plan"
+> ```
+
 ### Option 2: Direct copy
 
 ```bash
