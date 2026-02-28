@@ -14,6 +14,7 @@ No plan survives first contact with reality. Uriel makes sure yours gets that co
 |--------|-------------|--------|
 | [dispatch-framework](./plugins/dispatch-framework/) | 4-tier agent dispatch framework -- routes prompts to specialized agents via registry scoring, enforces delegation patterns, triggers governance reviews | v1.0.0 |
 | [verify-plan](./plugins/verify-plan/) | Adversarial plan verification via convergence-loop debate -- 3-5 agents challenge, research, and synthesize until convergence | v1.0.0 |
+| [interview](./plugins/interview/) | Structured interview plugin for context extraction -- one-question-at-a-time interviews with persistent state, 7 domain question banks, three-tier assumption management, and dispatch-framework compatibility | v1.0.0 |
 
 **Install:**
 
@@ -40,6 +41,7 @@ For example:
 ```bash
 claude plugin add verify-plan@uriel-lord-of-vows
 claude plugin add dispatch-framework@uriel-lord-of-vows
+claude plugin add interview@uriel-lord-of-vows
 ```
 
 Or clone and reference locally:
@@ -110,11 +112,23 @@ uriel-lord-of-vows/
 │   │   │   └── architecture.md
 │   │   ├── CLAUDE.md             # Behavioral instructions
 │   │   └── README.md
-│   └── verify-plan/              # Adversarial plan verification
+│   ├── verify-plan/              # Adversarial plan verification
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json       # Plugin manifest
+│   │   ├── agents/               # 6 agent definitions
+│   │   ├── skills/verify-plan/   # Orchestrator skill
+│   │   ├── docs/
+│   │   │   └── architecture.md
+│   │   ├── CLAUDE.md             # Behavioral instructions
+│   │   └── README.md
+│   └── interview/                # Structured interview plugin
 │       ├── .claude-plugin/
 │       │   └── plugin.json       # Plugin manifest
-│       ├── agents/               # 6 agent definitions
-│       ├── skills/verify-plan/   # Orchestrator skill
+│       ├── hooks/
+│       │   ├── hooks.json        # Hook declarations
+│       │   └── vague-prompt-detector.js
+│       ├── skills/interview/     # Interview orchestrator skill
+│       │   └── references/       # Question banks & synthesis patterns
 │       ├── docs/
 │       │   └── architecture.md
 │       ├── CLAUDE.md             # Behavioral instructions
