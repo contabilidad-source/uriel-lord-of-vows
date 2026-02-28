@@ -10,7 +10,7 @@ Convergence loop orchestrator for adversarial plan verification. Spawns fresh Ta
 ## Pipeline Position
 
 ```
-Plan written → /verify-plan (THIS) → [structural validator, if available] → Execution
+Plan written → /verify-plan (THIS) → gsd-plan-checker (structural) → Execution
 ```
 
 ## Invocation
@@ -19,8 +19,11 @@ Plan written → /verify-plan (THIS) → [structural validator, if available] �
 
 Path resolution order:
 1. Explicit path argument (e.g., `/verify-plan .claude/plans/my-plan.md`)
-2. Most recently modified file in `.claude/plans/`
-3. Ask user for path
+2. Auto-discover: list `.claude/plans/` sorted by modification time, pick most recent
+   - Use Bash: `ls -t .claude/plans/*.md 2>/dev/null | head -1`
+   - Do NOT use Glob with `**` patterns (causes timeouts on Windows home directories)
+3. If steps 1-2 fail or return empty: ask user for path
+   - Message: "No plan files found in `.claude/plans/`. Please provide the path to your plan file."
 
 Override flags:
 - `--team=base` — force 3-agent team regardless of complexity
@@ -37,8 +40,6 @@ Override flags:
 | plan-resolver (Mode 1) / plan-researcher (Modes 2-3) | sonnet/opus | Three-mode research |
 | plan-synthesizer | opus | Binary resolution tracking + convergence |
 
-> **Fallback:** If `plan-resolver` is not available, use `general-purpose` subagent type with the same prompt.
-
 ### Scaled Team (complexity >= 7 OR unknowns > 3) — adds:
 
 | Agent | Model | Role |
@@ -50,7 +51,15 @@ Override flags:
 
 ### Step 1: Discover Plan File
 
-Resolve path using invocation order above. Confirm file exists and is readable. Read plan content.
+Path resolution order:
+1. Explicit path argument (e.g., `/verify-plan .claude/plans/my-plan.md`)
+2. Auto-discover: list `.claude/plans/` sorted by modification time, pick most recent
+   - Use Bash: `ls -t .claude/plans/*.md 2>/dev/null | head -1`
+   - Do NOT use Glob with `**` patterns (causes timeouts on Windows home directories)
+3. If steps 1-2 fail or return empty: ask user for path
+   - Message: "No plan files found in `.claude/plans/`. Please provide the path to your plan file."
+
+Confirm file exists by reading it. If read fails, ask user for correct path.
 
 ### Step 2: Complexity Assessment & Team Sizing
 
@@ -60,10 +69,12 @@ Assess plan quality (RICH / ADEQUATE / THIN / TRIVIAL) and complexity:
 |---|---|
 | Steps/phases in plan | +1/step (max 3) |
 | Distinct domains | +1/domain (max 3) |
-| External integrations | +2/system |
+| External integrations | +2/system (max 4) |
 | Compliance/regulatory | +2 |
-| Unknown signals (TBD, TODO, unclear, etc.) | +1 each |
+| Unknown signals (TBD, TODO, unclear, etc.) | +1 each (max 3) |
 | 10+ referenced files | +1 |
+
+Maximum possible score: 16. Threshold default: 7.
 
 Decision:
 - **TRIVIAL plan:** Skip team entirely. Output abbreviated `PROCEED (trivial)` with 1-2 sentence note. ~2K tokens. DONE.
@@ -72,7 +83,7 @@ Decision:
 - **Score >= 7 OR unknowns > 3:** SCALED team (5 agents).
 - Override: `--team=base` | `--team=scaled` | `--threshold=N`
 
-Show assessment to user: `"Complexity: N/14. Team: BASE|SCALED. Starting verification..."`
+Show assessment to user: `"Complexity: N/16. Team: BASE|SCALED. Starting verification..."`
 
 ### Step 3: CONVERGENCE LOOP (max 3 iterations)
 
@@ -89,12 +100,12 @@ Return challenge brief with all challenges in Challenge Schema format + unknowns
 ```
 
 **Scaled team:**
-Use TeamCreate to run 3 agents in parallel:
+Spawn 3 Task agents in parallel (single message, multiple tool calls) — no TeamCreate needed since there's no inter-agent messaging:
 - **plan-challenger** — same prompt as above
 - **plan-domain-expert** — `"Read plan at [path]. Produce domain-specific challenges. Challenger produced: [paste challenger's challenges to avoid overlap]. Iteration state: [state]"`
 - **plan-devils-advocate** — `"Read plan at [path]. Hunt for black-swan scenarios. Other agents produced: [paste their challenges]. Iteration state: [state]"`
 
-TeamDelete immediately after all 3 return. Merge all challenges into `iteration_state.challenges` (cap at 8 total).
+Merge all challenges into `iteration_state.challenges` (cap at 8 total).
 
 #### Step 3b: Research Phase
 
@@ -107,6 +118,8 @@ For each, resolve as CONFIRMED/REFUTED/UNRESOLVABLE/PARTIALLY_RESOLVED.
 Format: [VERIFIED: source | finding | impact]
 ```
 Update `iteration_state.unknowns` with findings.
+
+If Mode 1 output is unparseable or missing, treat all unknowns as UNRESOLVABLE and continue to Modes 2-3.
 
 **Modes 2-3 — SURFACE + PROBE (plan-researcher):**
 On iteration 1 only (unless Synthesizer directs RE-SWEEP or RE-PROBE):
@@ -142,6 +155,16 @@ Read Synthesizer output. Update `iteration_state.convergence`.
 
 **Between iterations (non-blocking):** Update user with progress summary.
 
+### Agent Failure Protocol
+
+If any spawned Task agent fails (returns error, times out, or produces unparseable output):
+1. Log the failure: "Agent [name] failed on iteration [N]: [error summary]"
+2. For Challenger failure: skip challenge phase, carry forward previous challenges
+3. For Researcher failure: skip research phase, note "research unavailable" in iteration state
+4. For Synthesizer failure: FORCE EXIT with partial results — present what's available to user
+5. Never retry a failed agent in the same iteration — move forward with available data
+6. If 2+ agents fail in the same iteration: FORCE EXIT, present partial findings
+
 ### Step 4: Final Verdict
 
 If converged, give Challenger ONE audit shot. Spawn `plan-challenger` (brief):
@@ -159,13 +182,13 @@ Present final output to user:
 - **Score discrepancies** — if any from Challenger audit
 - **Surfaced context summary** — relevant findings nobody asked about
 - **Recommended next step:**
-  - PROCEED → "Run structural validation (if available), then execute"
+  - PROCEED → "Run gsd-plan-checker for structural validation, then execute"
   - REVISE → "Update plan with changes listed, then re-run /verify-plan"
-  - RETHINK → "Fundamental issues found. Do NOT proceed to execution. Rework approach first."
+  - RETHINK → "Fundamental issues found. Do NOT run gsd-plan-checker. Rework approach first."
 
 ### Step 5: Cleanup
 
-TeamDelete if scaled team was created during Step 3a.
+No cleanup needed — all agents are fresh Task spawns with no persistent state.
 
 ## User Checkpoint Protocol
 
@@ -203,15 +226,15 @@ Main Thread (orchestrator + state holder)
 
 ## Integration Points
 
-- Designed to run **before** any structural validation tool (if available in your setup)
-- **RETHINK** → skip downstream validation entirely
+- Runs **BEFORE** `gsd-plan-checker` (structural validation)
+- **RETHINK** → skip gsd-plan-checker entirely
 - **REVISE** → user updates plan, optionally re-runs /verify-plan
-- **PROCEED** → continue to structural validation or execution
+- **PROCEED** → go to gsd-plan-checker
 
 ## Anti-Patterns — Do NOT
 
-- **Check structure** — a structural validator's job, not this skill's
-- **Review code** — a dedicated code review tool's job, not this skill's
+- **Check structure** — gsd-plan-checker's job
+- **Review code** — multipersona-auditor's job
 - **Use persistent agents** — fresh Task per step
 - **Allow agent-to-agent messaging** — main thread serializes all state
 - **Use numeric scores for loop control** — binary resolution tracking only
@@ -219,4 +242,4 @@ Main Thread (orchestrator + state holder)
 - **Skip complexity assessment** — always assess before team sizing
 - **Run Modes 2-3 on iterations 2-3** — unless Synthesizer directs RE-SWEEP/RE-PROBE
 - **Research inside plan-challenger** — unknowns manifest only, research delegated
-- **Create TeamCreate for base team** — only for scaled team's parallel challenge phase
+- **Create TeamCreate for any verify-plan team** — use parallel Task spawns instead

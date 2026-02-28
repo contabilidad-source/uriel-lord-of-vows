@@ -1,0 +1,9 @@
+{
+  "name": "interview",
+  "description": "Structured interview plugin for Claude Code. Conducts one-question-at-a-time interviews to extract full context before generating deliverables. Produces synthesized mega-prompts and high-quality outputs.",
+  "version": "1.0.0",
+  "author": { "name": "Uriel Contributors" },
+  "license": "MIT",
+  "homepage": "",
+  "skills": "./skills/"
+}

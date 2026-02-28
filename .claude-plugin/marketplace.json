@@ -1,0 +1,19 @@
+{
+  "plugins": [
+    {
+      "name": "dispatch-framework",
+      "description": "4-tier agent dispatch framework for Claude Code. Routes prompts to specialized agents/skills via registry scoring, PreToolUse enforcement, and workflow protocol.",
+      "source": "../plugins/dispatch-framework"
+    },
+    {
+      "name": "verify-plan",
+      "description": "Adversarial plan verification via convergence-loop debate. 3-5 agents challenge, research, and synthesize until convergence.",
+      "source": "../plugins/verify-plan"
+    },
+    {
+      "name": "interview",
+      "description": "Structured interview plugin for context extraction. One-question-at-a-time interviews with persistent state, 7 domain question banks, three-tier assumption management, and dispatch-framework compatibility.",
+      "source": "../plugins/interview"
+    }
+  ]
+}

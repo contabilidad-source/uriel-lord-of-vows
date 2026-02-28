@@ -8,11 +8,21 @@ No plan survives first contact with reality. Uriel makes sure yours gets that co
 
 ---
 
-## Skills Catalog
+## Plugins Catalog
 
-| Skill | Description | Status |
-|-------|-------------|--------|
-| [verify-plan](./skills/verify-plan/) | Multi-agent adversarial plan verification | v1.0.0 |
+| Plugin | Description | Status |
+|--------|-------------|--------|
+| [dispatch-framework](./plugins/dispatch-framework/) | 4-tier agent dispatch framework -- routes prompts to specialized agents via registry scoring, enforces delegation patterns, triggers governance reviews | v1.0.0 |
+| [verify-plan](./plugins/verify-plan/) | Adversarial plan verification via convergence-loop debate -- 3-5 agents challenge, research, and synthesize until convergence | v1.0.0 |
+| [interview](./plugins/interview/) | Structured interview plugin for context extraction -- one-question-at-a-time interviews with persistent state, 7 domain question banks, three-tier assumption management, and dispatch-framework compatibility | v1.0.0 |
+
+**Install:**
+
+```bash
+claude plugin add dispatch-framework@uriel-lord-of-vows
+```
+
+See the [dispatch-framework README](./plugins/dispatch-framework/README.md) for full documentation, configuration, and troubleshooting.
 
 > `agents/` and `mcps/` directories are reserved for future additions.
 
@@ -20,34 +30,25 @@ No plan survives first contact with reality. Uriel makes sure yours gets that co
 
 ## Quick Start
 
-### Option 1: Symlink (recommended)
+Install any plugin with the Claude Code CLI:
 
-Symlinks keep the skill updated — just `git pull` to get new versions.
+```bash
+claude plugin add <plugin-name>@uriel-lord-of-vows
+```
 
-**Linux / macOS:**
+For example:
+
+```bash
+claude plugin add verify-plan@uriel-lord-of-vows
+claude plugin add dispatch-framework@uriel-lord-of-vows
+claude plugin add interview@uriel-lord-of-vows
+```
+
+Or clone and reference locally:
 
 ```bash
 git clone https://github.com/contabilidad-source/uriel-lord-of-vows.git
-ln -s "$(pwd)/uriel-lord-of-vows/skills/verify-plan" ~/.claude/skills/verify-plan
-```
-
-**Windows (PowerShell as Administrator):**
-
-```powershell
-git clone https://github.com/contabilidad-source/uriel-lord-of-vows.git
-New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\verify-plan" -Target "$(Get-Location)\uriel-lord-of-vows\skills\verify-plan"
-```
-
-> **Note:** Creating symlinks on Windows requires **Administrator PowerShell** or **Developer Mode** enabled (Settings > For Developers). If neither is available, use Option 2 (copy) or create a junction instead:
-> ```cmd
-> cmd /c mklink /J "%USERPROFILE%\.claude\skills\verify-plan" "uriel-lord-of-vows\skills\verify-plan"
-> ```
-
-### Option 2: Direct copy
-
-```bash
-git clone https://github.com/contabilidad-source/uriel-lord-of-vows.git
-cp -r uriel-lord-of-vows/skills/verify-plan ~/.claude/skills/verify-plan
+# Plugins are in plugins/<name>/ — point Claude Code to the local directory
 ```
 
 ---
@@ -95,14 +96,48 @@ This project is designed to be safe by default:
 
 ```
 uriel-lord-of-vows/
-├── skills/
-│   └── verify-plan/       # Adversarial plan verification
-│       └── SKILL.md
-├── agents/                 # Reserved for future additions
-├── mcps/                   # Reserved for future additions
-├── docs/                   # Documentation
-├── LICENSE                 # MIT
-└── README.md               # You are here
+├── plugins/
+│   ├── dispatch-framework/       # 4-tier agent dispatch
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json       # Plugin manifest
+│   │   ├── hooks/
+│   │   │   ├── hooks.json        # Hook declarations
+│   │   │   ├── dispatch-router.js
+│   │   │   ├── dispatch-enforcer.js
+│   │   │   └── governance-router.js
+│   │   ├── agents/
+│   │   │   └── registry.json     # Agent routing registry
+│   │   ├── skills/               # Plugin-bundled skills
+│   │   ├── docs/
+│   │   │   └── architecture.md
+│   │   ├── CLAUDE.md             # Behavioral instructions
+│   │   └── README.md
+│   ├── verify-plan/              # Adversarial plan verification
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json       # Plugin manifest
+│   │   ├── agents/               # 6 agent definitions
+│   │   ├── skills/verify-plan/   # Orchestrator skill
+│   │   ├── docs/
+│   │   │   └── architecture.md
+│   │   ├── CLAUDE.md             # Behavioral instructions
+│   │   └── README.md
+│   └── interview/                # Structured interview plugin
+│       ├── .claude-plugin/
+│       │   └── plugin.json       # Plugin manifest
+│       ├── hooks/
+│       │   ├── hooks.json        # Hook declarations
+│       │   └── vague-prompt-detector.js
+│       ├── skills/interview/     # Interview orchestrator skill
+│       │   └── references/       # Question banks & synthesis patterns
+│       ├── docs/
+│       │   └── architecture.md
+│       ├── CLAUDE.md             # Behavioral instructions
+│       └── README.md
+├── agents/                       # Reserved for future additions
+├── mcps/                         # Reserved for future additions
+├── docs/                         # Documentation
+├── LICENSE                       # MIT
+└── README.md                     # You are here
 ```
 
 ---

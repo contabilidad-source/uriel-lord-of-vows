@@ -1,0 +1,124 @@
+{
+  "version": "1.0",
+  "description": "Starter dispatch registry for routing prompts to specialized Task-based agents",
+
+  "entries": [
+    {
+      "name": "general-coder",
+      "description": "Catch-all fallback for general coding and engineering tasks",
+      "tool": "Task",
+      "subagent_type": "general-purpose",
+      "priority": 50,
+      "keywords": [
+        "\\b(build|create|implement|fix|debug|refactor|code|function|class|module)\\b",
+        "\\b(api|endpoint|database|schema|migration|query|test|deploy|config)\\b",
+        "\\b(bug|error|feature|update|upgrade|install|setup|scaffold|generate)\\b"
+      ],
+      "exclusions": [
+        "\\b(audit|review.*code|code.*review|deep.*review)\\b",
+        "\\b(brainstorm|ideate|think.?tank)\\b",
+        "\\b(system.prompt|persona|chatbot.prompt)\\b",
+        "\\b(prompt.optim|prompt.engineer)\\b"
+      ]
+    },
+    {
+      "name": "task-orchestrator",
+      "description": "Multi-step task coordination and pipeline management",
+      "tool": "Task",
+      "subagent_type": "task-orchestrator",
+      "priority": 75,
+      "keywords": [
+        "\\b(orchestrat|coordinat|multi.?step|decompos|pipeline|workflow|sequenc)\\b"
+      ],
+      "exclusions": []
+    },
+    {
+      "name": "system-prompt-architect",
+      "description": "System prompt design, persona crafting, and behavioral instruction authoring",
+      "tool": "Task",
+      "subagent_type": "system-prompt-architect",
+      "priority": 80,
+      "keywords": [
+        "\\b(system.prompt|persona|chatbot.prompt|assistant.prompt|behavioral.instruct)\\b"
+      ],
+      "exclusions": [],
+      "model_tier": "opus"
+    },
+    {
+      "name": "prompt-optimizer",
+      "description": "Prompt improvement, refinement, and engineering",
+      "tool": "Task",
+      "subagent_type": "prompt-optimizer",
+      "priority": 78,
+      "keywords": [
+        "\\b(prompt.optim|improve.*prompt|prompt.*better|refine.*prompt|prompt.engineer)\\b"
+      ],
+      "exclusions": []
+    },
+    {
+      "name": "subagent-architect",
+      "description": "Agent and subagent design, configuration, and architecture",
+      "tool": "Task",
+      "subagent_type": "subagent-architect",
+      "priority": 82,
+      "keywords": [
+        "\\b(subagent|agent.design|agent.config|agent.architect|create.*agent|build.*agent)\\b"
+      ],
+      "exclusions": [],
+      "model_tier": "opus"
+    },
+    {
+      "name": "multipersona-auditor",
+      "description": "Code and document auditing with adversarial quality validation",
+      "tool": "Task",
+      "subagent_type": "multipersona-auditor",
+      "priority": 85,
+      "keywords": [
+        "\\b(audit|review.*code|code.*review|quality.*check|deep.*review)\\b"
+      ],
+      "exclusions": [],
+      "model_tier": "opus"
+    },
+    {
+      "name": "brainstorm-thinktank",
+      "description": "Creative ideation, divergent thinking, and idea exploration",
+      "tool": "Task",
+      "subagent_type": "brainstorm-thinktank",
+      "priority": 76,
+      "keywords": [
+        "\\b(brainstorm|ideate|creative|think.?tank|explore.*ideas|divergent)\\b"
+      ],
+      "exclusions": []
+    }
+  ],
+
+  "routing_rules": {
+    "order": "score_descending",
+    "tie_breaking": "priority_then_first",
+    "scoring": {
+      "keyword_match": 20,
+      "exclusion_penalty": -100,
+      "priority_bonus_per_10": 2
+    },
+    "fallback": "general-coder"
+  },
+
+  "governance": {
+    "triggers": [
+      {
+        "name": "code-review-trigger",
+        "description": "Trigger review after significant code changes",
+        "condition": "lines_changed > 30",
+        "tool": "Task",
+        "subagent_type": "multipersona-auditor"
+      },
+      {
+        "name": "document-review-trigger",
+        "description": "Trigger review for long documents",
+        "condition": "word_count > 500",
+        "tool": "Task",
+        "subagent_type": "multipersona-auditor"
+      }
+    ]
+  }
+}
