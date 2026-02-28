@@ -1,0 +1,9 @@
+{
+  "name": "dispatch-framework",
+  "description": "4-tier agent dispatch framework for Claude Code. Routes prompts to specialized agents/skills via registry scoring, PreToolUse enforcement, and workflow protocol.",
+  "version": "1.0.0",
+  "author": { "name": "Pedro Malla", "url": "https://github.com/contabilidad-source" },
+  "license": "MIT",
+  "homepage": "https://github.com/contabilidad-source/uriel-lord-of-vows",
+  "skills": "./skills/"
+}

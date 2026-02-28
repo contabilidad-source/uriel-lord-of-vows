@@ -32,9 +32,9 @@ Every skill must:
 Before submitting a PR, run these grep checks from the repo root. **ALL must return empty:**
 
 ```bash
-grep -ri "test-malla" skills/
-grep -ri "C:\\Users" skills/
-grep -ri "config.local" skills/
+grep -ri "test-malla" skills/ plugins/
+grep -ri "C:\\Users" skills/ plugins/
+grep -ri "config.local" skills/ plugins/
 ```
 
 Skills must not reference:
@@ -42,6 +42,52 @@ Skills must not reference:
 - Personal usernames, paths, or namespaces
 - Specific MCP servers as hard dependencies (use "if available" pattern)
 - Platform-specific commands without alternatives (provide both Unix + Windows)
+
+---
+
+## Plugin Structure Requirements
+
+Plugins extend Claude Code with hooks, agents, and behavioral instructions. Every plugin must:
+
+- Live in `plugins/<plugin-name>/` directory
+- Have a `.claude-plugin/plugin.json` manifest with `name`, `description`, `version`, and `author` fields
+- Have a `hooks/hooks.json` declaring all hook registrations
+- Have a `CLAUDE.md` with behavioral instructions wrapped in `<plugin-name>` tags
+- Have a `README.md` with install instructions, usage documentation, and troubleshooting
+- Contain **NO** personal data, **NO** hardcoded paths, **NO** user-specific namespaces
+
+### Required Plugin Files
+
+```
+plugins/<plugin-name>/
+├── .claude-plugin/
+│   └── plugin.json          # Plugin manifest (required)
+├── hooks/
+│   ├── hooks.json           # Hook declarations (required)
+│   └── *.js                 # Hook scripts
+├── agents/                  # Agent configurations (if applicable)
+├── skills/                  # Bundled skills (if applicable)
+├── docs/                    # Documentation (recommended)
+├── CLAUDE.md                # Behavioral instructions (required)
+└── README.md                # User-facing documentation (required)
+```
+
+### Plugin Portability Rules
+
+Plugins must be portable across machines and users. Before submitting a plugin PR, run these grep checks:
+
+```bash
+grep -ri "test-malla\|cucina\|dgii\|adm.cloud\|rosa\|malla" plugins/
+grep -ri "C:\\\\Users" plugins/
+grep -ri "config.local" plugins/
+```
+
+All must return empty. Plugins must not reference:
+
+- Personal usernames, paths, or namespaces
+- Specific MCP servers as hard dependencies (use "if available" pattern)
+- Platform-specific commands without alternatives (provide both Unix + Windows)
+- Hardcoded absolute paths (use `CLAUDE_PLUGIN_ROOT` variable in hooks.json)
 
 ---
 

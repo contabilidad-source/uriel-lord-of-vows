@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    {
+      "name": "dispatch-framework",
+      "description": "4-tier agent dispatch framework for Claude Code. Routes prompts to specialized agents/skills via registry scoring, PreToolUse enforcement, and workflow protocol.",
+      "source": "../plugins/dispatch-framework"
+    }
+  ]
+}

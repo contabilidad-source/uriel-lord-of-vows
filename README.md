@@ -14,6 +14,22 @@ No plan survives first contact with reality. Uriel makes sure yours gets that co
 |-------|-------------|--------|
 | [verify-plan](./skills/verify-plan/) | Multi-agent adversarial plan verification | v1.0.0 |
 
+---
+
+## Plugins Catalog
+
+| Plugin | Description | Status |
+|--------|-------------|--------|
+| [dispatch-framework](./plugins/dispatch-framework/) | 4-tier agent dispatch framework -- routes prompts to specialized agents via registry scoring, enforces delegation patterns, triggers governance reviews | v1.0.0 |
+
+**Install:**
+
+```bash
+claude plugin add dispatch-framework@uriel-lord-of-vows
+```
+
+See the [dispatch-framework README](./plugins/dispatch-framework/README.md) for full documentation, configuration, and troubleshooting.
+
 > `agents/` and `mcps/` directories are reserved for future additions.
 
 ---
@@ -96,13 +112,29 @@ This project is designed to be safe by default:
 ```
 uriel-lord-of-vows/
 ├── skills/
-│   └── verify-plan/       # Adversarial plan verification
+│   └── verify-plan/              # Adversarial plan verification
 │       └── SKILL.md
-├── agents/                 # Reserved for future additions
-├── mcps/                   # Reserved for future additions
-├── docs/                   # Documentation
-├── LICENSE                 # MIT
-└── README.md               # You are here
+├── plugins/
+│   └── dispatch-framework/       # 4-tier agent dispatch
+│       ├── .claude-plugin/
+│       │   └── plugin.json       # Plugin manifest
+│       ├── hooks/
+│       │   ├── hooks.json        # Hook declarations
+│       │   ├── dispatch-router.js
+│       │   ├── dispatch-enforcer.js
+│       │   └── governance-router.js
+│       ├── agents/
+│       │   └── registry.json     # Agent routing registry
+│       ├── skills/               # Plugin-bundled skills
+│       ├── docs/
+│       │   └── architecture.md
+│       ├── CLAUDE.md             # Behavioral instructions
+│       └── README.md
+├── agents/                       # Reserved for future additions
+├── mcps/                         # Reserved for future additions
+├── docs/                         # Documentation
+├── LICENSE                       # MIT
+└── README.md                     # You are here
 ```
 
 ---
