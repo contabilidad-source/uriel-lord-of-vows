@@ -35,7 +35,7 @@ unknown:
   description: "What we don't know and need to know"
   type: "FILE_MISSING|API_BEHAVIOR|PRIOR_DECISION|STALE_KNOWLEDGE|INTEGRATION_UNKNOWN"
   affects_challenge: "C{N}"        # which challenge this unblocks
-  suggested_query: "Exact query to run in Grep, WebSearch, or memory_search (if available)"
+  suggested_query: "Exact query to run in memory_search (if available), Grep, or WebSearch"
   resolution: "CONFIRMED|REFUTED|UNRESOLVABLE|PARTIALLY_RESOLVED"
   finding: "[VERIFIED: source | finding | impact]"
 ```
@@ -134,8 +134,29 @@ Scores are irrelevant to loop control. Binary counts only.
 |--------|---------|--------|
 | **CONVERGED → PROCEED** | Zero BLOCKING open/unresolved + Zero SIGNIFICANT open/unresolved | Synthesizer writes final report with PROCEED verdict |
 | **CONVERGED → REVISE** | Zero BLOCKING open/unresolved + 1-2 SIGNIFICANT open/unresolved | Final report includes REVISE verdict with mitigations noted inline |
+| **CONVERGED → REVISE (strong)** | Zero BLOCKING open/unresolved + 3+ SIGNIFICANT unresolved with mitigations | Final report includes REVISE verdict with "Strongly recommended: address these before proceeding" |
 | **BLOCKED → PAUSE** | Any BLOCKING challenge is OPEN or UNRESOLVED | Loop pauses, Synthesizer surfaces specific question(s) to user |
 | **FORCED_EXIT → RETHINK** | Any BLOCKING still OPEN or UNRESOLVED after iteration 3 | Loop exits, Synthesizer writes RETHINK verdict — plan needs fundamental revision |
+
+**Advisory note:** If 5+ challenges are DEFERRED across all iterations, the final report MUST include a "Technical Debt Warning" section listing all deferred items. This does not affect the verdict but ensures the user sees the accumulated debt.
+
+---
+
+## 7.5 RE-SWEEP / RE-PROBE Trigger Conditions
+
+The Synthesizer MAY issue RE-SWEEP or RE-PROBE directives when:
+
+| Directive | Trigger Condition |
+|-----------|-------------------|
+| RE-SWEEP | A new BLOCKING challenge was introduced in iteration N that contradicts previously surfaced context |
+| RE-SWEEP | User response in iteration N changes the plan's scope or constraints |
+| RE-PROBE | A resolved unknown revealed a new dependency chain not previously probed |
+| RE-PROBE | An UNRESOLVED challenge has cascading implications not explored in iteration 1 |
+
+The Synthesizer SHOULD NOT issue RE-SWEEP/RE-PROBE when:
+- All challenges are progressing toward resolution (no new information needed)
+- The only remaining items are MINOR severity
+- Iteration 3 is reached (no further iterations available)
 
 ---
 
@@ -159,14 +180,14 @@ Budgets are **per agent per iteration**. Exceeding budget requires Synthesizer a
 |------|-------|
 | Read | 8 |
 | Grep | 5 |
-| memory_search | 3 |
+| memory_search (if available) | 3 |
 | WebSearch | 3 |
 | WebFetch | 2 |
 
 ### Mode 2 — SURFACE (Researcher scans for missed context)
 | Tool | Limit |
 |------|-------|
-| memory_search | 3 |
+| memory_search (if available) | 3 |
 | Grep | 4 |
 | Read | 3 |
 | git log | 1 |
@@ -176,7 +197,7 @@ Budgets are **per agent per iteration**. Exceeding budget requires Synthesizer a
 |------|-------|
 | Grep | 4 |
 | Read | 3 |
-| memory_search | 2 |
+| memory_search (if available) | 2 |
 | WebSearch | 1 (if needed) |
 
 ### Combined Totals (All Three Modes)
@@ -184,14 +205,10 @@ Budgets are **per agent per iteration**. Exceeding budget requires Synthesizer a
 |------|---------------|
 | Read | 14 |
 | Grep | 13 |
-| memory_search | 8 |
+| memory_search (if available) | 8 |
 | WebSearch | 4 |
 | WebFetch | 2 |
 
-> **Note:** `memory_search` requires the memory-router MCP server. If unavailable, reallocate those
-> budget slots to additional Grep and Read calls. The skill functions without memory-router —
-> resolution quality may be slightly reduced for `PRIOR_DECISION` and `STALE_KNOWLEDGE` unknowns.
-
 **WebSearch restrictions:** Only permitted for unknown types `API_BEHAVIOR`, `STALE_KNOWLEDGE`,
 and `INTEGRATION_UNKNOWN` in Mode 1, and for temporal risks (e.g. deprecation, versioning) in Mode 3.
-WebSearch is NEVER used for questions answerable from the local codebase or memory-router (if available).
+WebSearch is NEVER used for questions answerable from the local codebase or memory-router (if configured).

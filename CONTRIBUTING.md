@@ -47,11 +47,11 @@ Skills must not reference:
 
 ## Plugin Structure Requirements
 
-Plugins extend Claude Code with hooks, agents, and behavioral instructions. Every plugin must:
+Plugins extend Claude Code with agents, skills, hooks, and behavioral instructions. Every plugin must:
 
 - Live in `plugins/<plugin-name>/` directory
 - Have a `.claude-plugin/plugin.json` manifest with `name`, `description`, `version`, and `author` fields
-- Have a `hooks/hooks.json` declaring all hook registrations
+- Have a `hooks/hooks.json` declaring all hook registrations (if the plugin uses hooks)
 - Have a `CLAUDE.md` with behavioral instructions wrapped in `<plugin-name>` tags
 - Have a `README.md` with install instructions, usage documentation, and troubleshooting
 - Contain **NO** personal data, **NO** hardcoded paths, **NO** user-specific namespaces
@@ -62,8 +62,8 @@ Plugins extend Claude Code with hooks, agents, and behavioral instructions. Ever
 plugins/<plugin-name>/
 ├── .claude-plugin/
 │   └── plugin.json          # Plugin manifest (required)
-├── hooks/
-│   ├── hooks.json           # Hook declarations (required)
+├── hooks/                   # Hook system (if applicable)
+│   ├── hooks.json           # Hook declarations
 │   └── *.js                 # Hook scripts
 ├── agents/                  # Agent configurations (if applicable)
 ├── skills/                  # Bundled skills (if applicable)

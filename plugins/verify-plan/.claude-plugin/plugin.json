@@ -1,0 +1,9 @@
+{
+  "name": "verify-plan",
+  "description": "Adversarial plan verification via convergence-loop debate. Spawns 3-5 agents (challenger, researcher, synthesizer + optional domain-expert and devils-advocate) that autonomously challenge, research, and synthesize until convergence. Produces PROCEED/REVISE/RETHINK verdict.",
+  "version": "1.0.0",
+  "author": { "name": "Pedro Malla", "url": "https://github.com/contabilidad-source" },
+  "license": "MIT",
+  "homepage": "https://github.com/contabilidad-source/uriel-lord-of-vows",
+  "skills": "./skills/"
+}
